@@ -1,4 +1,4 @@
-# _*_ coding:utf-8
+# -*- coding:utf-8 -*-
 #import urllib
 #import re
 import urllib2
@@ -76,23 +76,46 @@ def getContentByUrl(url):
     mschina = MSCHINA()
     html = mschina.getCodeByBaseUrl(url)
     # title = "食材明细"
-    xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li//span[1]/b/text()'
-    name = mschina.getResByXpathExpr(html, xpath)
-    xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li//span[2]/text()'
-    qual = mschina.getResByXpathExpr(html, xpath)
+    # 获取食材标签数量
+    xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li'
+    lis = mschina.getResByXpathExpr(html, xpath)
+    names = []
+    qual = []
+    _len = len(lis)
+    for ind in range(0, _len):
+        # 每种食材名称
+        index = '%d' %(ind + 1)
+        xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li[' + index + ']/span[1]/b/text()'
+        name = mschina.getResByXpathExpr(html, xpath)
+        if(len(name) == 0):
+            xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li[' + index + ']/span[1]/a/b/text()'
+            name = mschina.getResByXpathExpr(html, xpath)
+        names.append(name[0])
+        # 每种食材用量
+        xpath = 'body/div[5]/div/div[1]/div[2]/div/div[3]/ul//li[' + index + ']/span[2]/text()'
+        q = mschina.getResByXpathExpr(html, xpath)
+        if(len(q) == 0):
+            q = ['适量']
+        qual.append(q[0])
+    # 制作步骤
     xpath = 'body/div[5]/div/div[1]/div[2]/div/div[6]/ul//li/div[2]/text()'
     step = mschina.getResByXpathExpr(html, xpath)
     #
-    res = []
-    _len = len(name)
+    res = ''
+    _len = len(names)
     for ind in range(0, _len):
-        single = []
-        single.append(name[ind])
-        single.append("\t")
-        single.append(qual[ind])
-        res.append(single)
-
-    res.append(step)
+        single = ''
+        single += names[ind]
+        single += '\t'
+        single += qual[ind]
+        single += '\n'
+        res += single
+    res += ('-' * 25)
+    res += '\n'
+    for s in step:
+        res += s
+        res += '\n'
+    res += ('+' * 100)
     return res
 
 # 获取所有菜的制作步骤
@@ -107,8 +130,9 @@ def getAllStep(urls):
 #######################################################################
 
 if __name__ == "__main__":
-    url = 'http://www.meishichina.com/'
-    urls = getFirUrl(url)
+     url = 'http://www.meishichina.com/'
+     urls = getFirUrl(url)
 
-    result = getAllStep(urls)
-    print result
+     result = getAllStep(urls)
+     for res in result:
+         print res
